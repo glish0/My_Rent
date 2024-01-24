@@ -1,8 +1,9 @@
-import {  useState } from 'react';
+import {  useEffect, useState } from 'react';
 import '../index.css'
+import { useNavigate } from 'react-router-dom';
 
 
-type formData = {
+type formDatas = {
   first_name: string;
     last_name: string;
     email: string;
@@ -13,7 +14,8 @@ type formData = {
 
 
 const Register = () => {
-  const [ formData, setFormData] = useState<formData>({
+  const navigate = useNavigate()
+  const [ formData, setFormData] = useState<any>({
     first_name: "",
     last_name: "",
     email: "",
@@ -31,13 +33,42 @@ const Register = () => {
       [name]: name === 'profileImage'? files[0] : value 
     })
   }
+  const [passwordMatch, setPasswordMatch ] = useState(true)
+
+  useEffect(() => {
+    setPasswordMatch(formData.password === formData.confirmPassword || formData.confirmPassword === "") 
+      
+    
+  },[])
+  const handleSubmit =async (e: any) => {
+    e.preventDefault()
 
   
+
+    try {
+      const register = new FormData()
+        for (let key in formData) {
+          register.append(key, formData[key])
+        }
+      const response = await fetch("http://localhost:5000/auth/register",
+     { method: "POST",
+      body: register}
+      )
+
+      if(response.ok){
+          navigate("/login")
+      }
+    } catch (error) {
+      console.log("registration failed" ,error.message)
+    }
+  }
 
   return (
     <div className='register flex flex-col items-center justify-center m-auto'>
       <div className='flex flex-col justify-center   rounded-[20px]  p-10 bg-black opacity-80  gap-[15px] text-white  w-[40%]'>
-        <form className='flex flex-col items-center gap-4  '>
+        <form 
+        onSubmit={handleSubmit}
+        className='flex flex-col items-center gap-4  '>
           <input 
             type='text'
             placeholder='First_name'
@@ -83,6 +114,9 @@ const Register = () => {
             className='w-full text-center px-2 py-3 text-white bg-transparent border-b-[1px]  '
             required
           />
+          {!passwordMatch && (
+            <p className="text-red-500">password are not match </p>
+          )}
           <input 
             id='image'
             type='file'
@@ -108,6 +142,7 @@ const Register = () => {
 
           <button
             type='submit'
+            disabled={!passwordMatch}
             className='bg-[#F8395A] cursor-pointer transition mt-4 w-[50%] hover:opacity-40 font-semibold text-lg rounded-[10px] px-2 py-2'
             >REGISTER</button>
         </form>
