@@ -59,7 +59,7 @@ const Register = () => {
           navigate("/login")
       }
     } catch (error) {
-      console.log("registration failed" ,error.message)
+      console.log("registration failed" ,error)
     }
   }
 
