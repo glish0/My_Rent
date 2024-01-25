@@ -1,21 +1,22 @@
-import {  useEffect, useState } from 'react';
+import {  FormEvent, useEffect, useState } from 'react';
 import '../index.css'
 import { useNavigate } from 'react-router-dom';
 
 
 type formDatas = {
   first_name: string;
-    last_name: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    profileImage: null;
-}
+  last_name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  profileImage: File | null;
+  [key: string]: string | File | null;
+};
 
 
 const Register = () => {
   const navigate = useNavigate()
-  const [ formData, setFormData] = useState<any>({
+  const [ formData, setFormData] = useState<formDatas>({
     first_name: "",
     last_name: "",
     email: "",
@@ -25,12 +26,12 @@ const Register = () => {
   })
 
   console.log(formData)
-  const handleChange = (e:any) => {
-    const { name, value, files } = e.target
+  const handleChange = (e: FormEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.currentTarget
     setFormData({
       ...formData,
       [name]: value,
-      [name]: name === 'profileImage'? files[0] : value 
+      [name]: name === 'profileImage'? files?[0] : value 
     })
   }
   const [passwordMatch, setPasswordMatch ] = useState(true)
@@ -40,19 +41,35 @@ const Register = () => {
       
     
   },[])
-  const handleSubmit =async (e: any) => {
+  const handleSubmit =async (e: FormEvent) => {
     e.preventDefault()
 
   
 
     try {
       const register = new FormData()
-        for (let key in formData) {
-          register.append(key, formData[key])
+       
+      for (let key in formData) {
+        const value = formData[key];
+    
+        if (value !== null) {
+          // Use type assertions or type checks to ensure correct types
+          if (typeof value === 'string') {
+            register.append(key, value);
+          } else if (value instanceof File) {
+            register.append(key, value);
+          }
+          // You can add more conditions for other types if necessary
         }
+      }
+
       const response = await fetch("http://localhost:5000/auth/register",
      { method: "POST",
-      body: register}
+      body: register,
+       headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    }
       )
 
       if(response.ok){
